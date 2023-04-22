@@ -4,9 +4,9 @@ import { InternalServerErrorException, BadRequestException } from '@nestjs/commo
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { InviteDTO } from './dto/invite.dto';
 import { InviteModel } from './invites.model';
-import { ChannelModel } from 'src/channels/channel.model';
-import { ChannelDTO } from 'src/channels/dto';
-import { UserModel } from 'src/users/user.model';
+import { ChannelModel } from '../channels/channel.model';
+import { ChannelDTO } from '../channels/dto';
+import { UserModel } from '../users/user.model';
 
 @Injectable()
 export class InvitesService {

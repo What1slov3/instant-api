@@ -3,8 +3,8 @@ import { Module } from '@nestjs/common';
 import { InvitesService } from './invites.service';
 import { InvitesController } from './invites.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ChannelModel, ChannelSchema } from 'src/channels/channel.model';
-import { UserModel, UserSchema } from 'src/users/user.model';
+import { ChannelModel, ChannelSchema } from '../channels/channel.model';
+import { UserModel, UserSchema } from '../users/user.model';
 
 @Module({
   imports: [

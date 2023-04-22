@@ -3,8 +3,8 @@ import { Module } from '@nestjs/common';
 import { ChannelsController } from './channels.controller';
 import { ChannelsService } from './channels.service';
 import { ChannelModel, ChannelSchema } from './channel.model';
-import { UserModel, UserSchema } from 'src/users/user.model';
-import { ChatModel, ChatSchema } from 'src/chats/chat.model';
+import { UserModel, UserSchema } from '../users/user.model';
+import { ChatModel, ChatSchema } from '../chats/chat.model';
 
 @Module({
   imports: [

@@ -1,10 +1,10 @@
-import IUser from 'src/users/interfaces/user.interface';
+import IUser from '../users/interfaces/user.interface';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { ChannelDocument, ChannelModel } from './channel.model';
-import { UserDocument, UserModel } from 'src/users/user.model';
-import { ChatDocument, ChatModel } from 'src/chats/chat.model';
+import { UserDocument, UserModel } from '../users/user.model';
+import { ChatDocument, ChatModel } from '../chats/chat.model';
 import { CreateChannelDTO, ChannelDTO, UpdateChannelDTO } from './dto';
 
 @Injectable()

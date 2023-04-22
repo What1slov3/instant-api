@@ -1,5 +1,5 @@
 import { UserModel } from '../user.model';
-import { createURLtoFile, constructDTO } from 'src/common';
+import { createURLtoFile, constructDTO } from '../../common';
 import IUser from '../interfaces/user.interface';
 
 export class UserDTO extends UserModel implements IUser {

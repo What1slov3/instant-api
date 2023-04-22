@@ -1,4 +1,4 @@
-import { constructDTO } from 'src/common';
+import { constructDTO } from '../../common';
 import { ChatModel } from '../chat.model';
 import IChat from '../interfaces/chat.interface';
 

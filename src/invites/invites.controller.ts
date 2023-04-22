@@ -2,11 +2,11 @@ import { GetInviteDTO } from './dto/getInvite.dto';
 import { Controller, Param } from '@nestjs/common';
 import { Get, Req, UseGuards } from '@nestjs/common/decorators';
 import { InvitesService } from './invites.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { GetChannelFromInviteDTO } from './dto/getChannel.dto';
 import { JoinByInviteDTO } from './dto/joinByInvite.dto';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ChannelEntity } from 'src/channels/entities/channel.entity';
+import { ChannelEntity } from '../channels/entities/channel.entity';
 import { InviteEntity } from './entities/invites.entity';
 
 @ApiTags('Invites')

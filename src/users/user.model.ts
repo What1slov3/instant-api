@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { generateTag } from 'src/common';
+import { generateTag } from '../common';
 import IUser from './interfaces/user.interface';
 
 export type UserDocument = UserModel & Document;

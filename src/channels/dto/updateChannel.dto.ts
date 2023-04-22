@@ -2,7 +2,7 @@ import { IntersectionType, PartialType } from '@nestjs/mapped-types';
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { Types } from 'mongoose';
-import { toMongoObjectId } from 'src/common/transforms/toMongoObjectId';
+import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
 import IChannel from '../interface/channel.interface';
 import { ApiProperty } from '@nestjs/swagger';
 

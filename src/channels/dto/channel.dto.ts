@@ -1,4 +1,4 @@
-import { createURLtoFile, constructDTO } from 'src/common';
+import { createURLtoFile, constructDTO } from '../../common';
 import { ChannelModel } from '../channel.model';
 import IChannel from '../interface/channel.interface';
 

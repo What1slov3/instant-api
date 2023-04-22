@@ -1,7 +1,7 @@
 import { SchemaFactory } from '@nestjs/mongoose';
 import { Prop, Schema } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { generateString } from 'src/common';
+import { generateString } from '../common';
 import { IInvite } from './interfaces/invites.interface';
 
 export type InviteeDocument = InviteModel & Document;

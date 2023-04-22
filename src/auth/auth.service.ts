@@ -2,7 +2,7 @@ import { RefreshTokenModel, RefreshTokenDocument } from './models/refreshToken.m
 import { Model, Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserService } from 'src/users/user.service';
+import { UserService } from '../users/user.service';
 import * as argon2 from 'argon2';
 import { TRefreshTokenPayload } from './auth.types';
 import { InjectModel } from '@nestjs/mongoose';

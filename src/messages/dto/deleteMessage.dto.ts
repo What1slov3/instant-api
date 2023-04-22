@@ -1,8 +1,8 @@
 import { Transform, Type } from 'class-transformer';
 import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { Types } from 'mongoose';
-import { toMongoObjectId } from 'src/common/transforms/toMongoObjectId';
-import IMessage, { MessageContext } from 'src/messages/interfaces/message.interface';
+import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
+import IMessage, { MessageContext } from '../../messages/interfaces/message.interface';
 import { MessageContextDTO } from './message.dto';
 import { ApiProperty } from '@nestjs/swagger';
 

@@ -1,8 +1,8 @@
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
-import { EVENTS, SOCKET_EMIT } from 'src/common/events';
-import { MessageDTO } from 'src/messages/dto';
+import { EVENTS, SOCKET_EMIT } from '../common/events';
+import { MessageDTO } from '../messages/dto';
 
 @WebSocketGateway({ transports: ['websocket'] })
 export class MessagesGateway {

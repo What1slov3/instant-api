@@ -9,8 +9,13 @@ export type MessageDocument = MessageModel & Document;
 export class MessageModel implements IMessage {
   _id: Types.ObjectId;
 
-  @Prop(raw({ text: { type: String, default: '', maxlength: 4000 } }))
-  content: { text: string };
+  @Prop(
+    raw({
+      text: { type: String, default: '', maxlength: 4000, trim: true },
+      attachments: { files: { type: [String], required: false } },
+    }),
+  )
+  content: { text: string; attachments?: { files: string[] } };
 
   @Prop(
     raw({

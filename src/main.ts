@@ -5,7 +5,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import IUser from './users/interfaces/user.interface';
 import * as cookieParser from 'cookie-parser';
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 declare global {
   namespace Express {
@@ -29,6 +29,7 @@ declare global {
       JWT_REFRESH_EXPIRED: string;
       INVITE_LINK_LENGTH: string;
       LOCAL_FRONT_URL: string;
+      MAX_FILE_UPLOAD: string;
     }
   }
 }
@@ -58,4 +59,5 @@ async function bootstrap() {
 
   console.log(`Server is running at ${process.env.PORT}`);
 }
+
 bootstrap();

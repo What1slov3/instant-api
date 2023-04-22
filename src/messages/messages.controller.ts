@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { DeleteMessageDTO, GetHistoryDTO, SendMessageDTO } from './dto';
 import { MessagesService } from './messages.service';
 import { MessageEntity } from './entities/messages.entity';

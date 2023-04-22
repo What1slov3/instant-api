@@ -1,5 +1,5 @@
 import { InviteModel } from './../invites.model';
-import { constructDTO } from 'src/common';
+import { constructDTO } from '../../common';
 import { IInvite } from '../interfaces/invites.interface';
 
 export class InviteDTO extends InviteModel implements IInvite {

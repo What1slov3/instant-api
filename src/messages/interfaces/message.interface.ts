@@ -11,7 +11,12 @@ export default interface IMessage {
 
 export type MessageContent = {
   text: string;
+  attachments?: MessageAttachments
 };
+
+export type MessageAttachments = {
+  files?: string[];
+}
 
 export type MessageContext = {
   chatId: Types.ObjectId;

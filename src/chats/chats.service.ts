@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, BadRequestException } from '@
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ChatDocument, ChatModel } from './chat.model';
 import mongoose, { Model, Types } from 'mongoose';
-import { ChannelDocument, ChannelModel } from 'src/channels/channel.model';
+import { ChannelDocument, ChannelModel } from '../channels/channel.model';
 import { ChatDTO, CreateChatDTO } from './dto';
 
 @Injectable()

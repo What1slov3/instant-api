@@ -5,8 +5,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ChatDocument, ChatModel } from './../chats/chat.model';
 import { MessageDocument, MessageModel } from './message.model';
 import { DeleteMessageDTO, MessageDTO, SendMessageDTO, GetHistoryDTO } from './dto';
-import { EVENTS } from 'src/common/events';
-import type IUser from 'src/users/interfaces/user.interface';
+import { EVENTS } from '../common/events';
+import type IUser from '../users/interfaces/user.interface';
 
 @Injectable()
 export class MessagesService {
@@ -24,7 +24,7 @@ export class MessagesService {
     try {
       session.startTransaction();
 
-      const transactionResult = await Promise.all([
+      const transaction = await Promise.all([
         this.messageModel.create([{ senderId: user._id, content, context }], { session }),
         this.chatModel.updateOne({ _id: context.chatId }, { $inc: { 'stats.messageCount': 1 } }, { session }),
       ]);
@@ -32,7 +32,7 @@ export class MessagesService {
       await session.commitTransaction();
       await session.endSession();
 
-      const messageDTO = new MessageDTO(transactionResult[0][0].toJSON()).get();
+      const messageDTO = new MessageDTO(transaction[0][0].toJSON()).get();
       this.eventEmitter.emit(EVENTS.USER_MESSAGES.SEND, messageDTO);
       return messageDTO;
     } catch (e) {

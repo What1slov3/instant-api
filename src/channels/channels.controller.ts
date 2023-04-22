@@ -13,9 +13,9 @@ import {
   Patch,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { multerOptions } from 'src/common/configs/storage.config';
+import { multerOptions } from '../common/configs/storage.config';
 import { ChannelsService } from './channels.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CreateChannelDTO, GetChannelsDTO } from './dto';
 import { UpdateChannelDTO, UpdateChannelParamDTO } from './dto/updateChannel.dto';
 import {
@@ -117,8 +117,8 @@ export class ChannelsController {
       param.channelId,
       {
         ...body,
-        icon: files.icon?.[0].filename,
-        banner: files.banner?.[0].filename,
+        icon: files?.icon?.[0].filename,
+        banner: files?.banner?.[0].filename,
       },
       req.user._id,
     );
