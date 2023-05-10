@@ -7,6 +7,9 @@ import { InviteModel } from './invites.model';
 import { ChannelModel } from '../channels/channel.model';
 import { ChannelDTO } from '../channels/dto';
 import { UserModel } from '../users/user.model';
+import { MessagesService } from 'messages/messages.service';
+import { channelGreetings } from 'common/greetings';
+import { getRandomFromArray } from 'common/utils/getRandomFromArray';
 
 @Injectable()
 export class InvitesService {
@@ -15,10 +18,11 @@ export class InvitesService {
     @InjectModel(ChannelModel.name) private readonly channelModel: Model<ChannelModel>,
     @InjectModel(UserModel.name) private readonly userModel: Model<UserModel>,
     @InjectConnection() private readonly connection: mongoose.Connection,
+    private readonly messagesService: MessagesService,
   ) {}
 
   public async getLink(channelId: Types.ObjectId) {
-    let link = await this.inviteModel.findOne({ channelId });
+    const link = await this.inviteModel.findOne({ channelId });
 
     if (link) {
       return new InviteDTO(link.toJSON()).get();
@@ -94,6 +98,15 @@ export class InvitesService {
             { new: true, session },
           ),
         ]);
+
+        await this.messagesService.sendMessage(
+          {
+            content: { text: getRandomFromArray(channelGreetings) },
+            context: { channelId: link.channelId, chatId: transactionResult[0].toJSON().systemChatId },
+          },
+          link.channelId,
+          { type: 'greetings', data: { userId } },
+        );
 
         await session.commitTransaction();
         await session.endSession();

@@ -1,7 +1,7 @@
 import { SchemaFactory } from '@nestjs/mongoose';
 import { Prop, raw, Schema } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import IMessage from './interfaces/message.interface';
+import IMessage, { MessageMeta, MessageType } from './interfaces/message.interface';
 
 export type MessageDocument = MessageModel & Document;
 
@@ -27,6 +27,14 @@ export class MessageModel implements IMessage {
 
   @Prop({ required: true, type: Types.ObjectId, ref: 'users' })
   senderId: Types.ObjectId;
+
+  @Prop(
+    raw({
+      type: { type: String },
+      data: { type: Object },
+    }),
+  )
+  meta: MessageMeta;
 
   createdAt: Date;
   updatedAt: Date;

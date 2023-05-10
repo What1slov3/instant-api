@@ -12,5 +12,6 @@ import { ChatModel, ChatSchema } from '../chats/chat.model';
   ],
   providers: [MessagesService],
   controllers: [MessagesController],
+  exports: [MessagesService],
 })
 export class MessagesModule {}

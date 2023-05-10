@@ -22,6 +22,7 @@ export class MessageDTO extends MessageModel implements IMessage {
       'createdAt',
       'updatedAt',
       'senderId',
+      'meta',
     ]);
   }
 }

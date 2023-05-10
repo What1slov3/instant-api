@@ -15,6 +15,7 @@ export class ChannelDTO extends ChannelModel implements IChannel {
       {
         mutate: {
           icon: createURLtoFile,
+          banner: createURLtoFile,
         },
       },
     );
@@ -27,6 +28,7 @@ export class ChannelDTO extends ChannelModel implements IChannel {
       },
       mutate: {
         icon: createURLtoFile,
+        banner: createURLtoFile,
       },
     });
   }

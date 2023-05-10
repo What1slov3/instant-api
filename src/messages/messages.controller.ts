@@ -18,7 +18,7 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @Post('send')
   async sendMessage(@Body() body: SendMessageDTO, @Req() req: Express.Request) {
-    return this.messagesService.sendMessage(body, req.user);
+    return this.messagesService.sendMessage(body, req.user._id);
   }
 
   @ApiBearerAuth()

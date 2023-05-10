@@ -6,7 +6,7 @@ import { ChatDocument, ChatModel } from './../chats/chat.model';
 import { MessageDocument, MessageModel } from './message.model';
 import { DeleteMessageDTO, MessageDTO, SendMessageDTO, GetHistoryDTO } from './dto';
 import { EVENTS } from '../common/events';
-import type IUser from '../users/interfaces/user.interface';
+import type { MessageMeta } from './interfaces/message.interface';
 
 @Injectable()
 export class MessagesService {
@@ -17,7 +17,7 @@ export class MessagesService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async sendMessage(messageData: SendMessageDTO, user: IUser) {
+  async sendMessage(messageData: SendMessageDTO, senderId: Types.ObjectId, meta?: MessageMeta) {
     const { content, context } = messageData;
 
     const session = await this.connection.startSession();
@@ -25,7 +25,7 @@ export class MessagesService {
       session.startTransaction();
 
       const transaction = await Promise.all([
-        this.messageModel.create([{ senderId: user._id, content, context }], { session }),
+        this.messageModel.create([{ senderId, content, context, meta }], { session }),
         this.chatModel.updateOne({ _id: context.chatId }, { $inc: { 'stats.messageCount': 1 } }, { session }),
       ]);
 

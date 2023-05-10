@@ -1,11 +1,32 @@
-import { Controller, Get, Post, Body, UseGuards, Request, BadRequestException, Query, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  BadRequestException,
+  Query,
+  Patch,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CreateUserDTO, UpdateUserDTO, UserDTO } from './dto';
 import { GetUsersDTO } from './dto/getUsers.dto';
 import { ChangePasswordDTO } from './dto/changePassword.dto';
 import { UserEntity } from './entities/user.entity';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from 'common';
 
 @ApiTags('User')
 @Controller('user')
@@ -56,11 +77,13 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновление пользователя' })
+  @ApiConsumes('multipart/form-data')
   @ApiOkResponse({ type: UserEntity })
   @ApiBadRequestResponse()
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }], multerOptions))
   @Patch('update')
-  async updateUser(@Body() body: UpdateUserDTO, @Request() req: Express.Request) {
-    return this.userService.updateUser(body, req.user._id);
+  async updateUser(@Body() body: UpdateUserDTO, @UploadedFiles() files, @Request() req: Express.Request) {
+    return this.userService.updateUser({ ...body, avatar: files?.avatar?.[0].filename }, req.user._id);
   }
 }
