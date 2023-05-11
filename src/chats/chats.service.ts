@@ -1,9 +1,12 @@
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common/exceptions';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { ChatDocument, ChatModel } from './chat.model';
 import mongoose, { Model, Types } from 'mongoose';
 import { ChannelDocument, ChannelModel } from '../channels/channel.model';
 import { ChatDTO, CreateChatDTO } from './dto';
+import { UpdateChatDTO } from './dto/updateChat.dto';
+import IUser from 'users/interfaces/user.interface';
 
 @Injectable()
 export class ChatsService {
@@ -54,5 +57,19 @@ export class ChatsService {
   async getChatsForChannel(channelId: Types.ObjectId) {
     const chats = await this.chatModel.find({ channelOwner: channelId });
     return chats.map((chat) => new ChatDTO(chat.toJSON()).get());
+  }
+
+  async updateChat(chatId: Types.ObjectId, data: UpdateChatDTO, user: IUser) {
+    const channel = await this.channelModel.find({ ownerId: user._id });
+
+    if (!channel) {
+      throw new ForbiddenException();
+    }
+
+    const chat = await this.chatModel.findOneAndUpdate({ _id: chatId }, data, {
+      new: true,
+    });
+
+    return new ChatDTO(chat.toJSON()).get();
   }
 }
