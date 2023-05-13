@@ -9,12 +9,6 @@ export class ChatDTO extends ChatModel implements IChat {
   }
 
   get() {
-    return constructDTO<this, keyof Exclude<IChat, 'updatedAt'>>(this, [
-      '_id',
-      'owningChannelId',
-      'name',
-      'createdAt',
-      'stats',
-    ]);
+    return constructDTO<this, keyof Exclude<IChat, 'updatedAt'>>(this, ['_id', 'owningChannelId', 'name', 'createdAt']);
   }
 }
