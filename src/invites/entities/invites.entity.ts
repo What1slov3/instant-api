@@ -4,10 +4,10 @@ import { Types } from 'mongoose';
 
 export class InviteEntity implements Partial<IInvite> {
   @ApiProperty()
-  _id: string;
+  id: string;
 
   @ApiProperty({ type: String })
-  channelId: Types.ObjectId;
+  channelId: string;
 
   @ApiProperty()
   link: string;

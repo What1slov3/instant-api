@@ -1,29 +1,46 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
-import { UserModel, UserDocument } from './user.model';
-import { CreateUserDTO, UpdateUserDTO, UserDTO } from './dto';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { DataSource, In, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CreateUserDTO, UpdateUserDTO, UserDTO } from './dto';
+import { UserEntity } from './entities/db/user.entity';
+import { generateTag } from 'common';
+import { ChannelMemberEntity } from 'channels/entities/db/channelMember.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(UserModel.name)
-    private readonly userModel: Model<UserDocument>,
-    @InjectConnection() private readonly connection: mongoose.Connection,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(ChannelMemberEntity)
+    private readonly channelMemberRepository: Repository<ChannelMemberEntity>,
+    private dataSource: DataSource,
   ) {}
 
   public async createUser(body: CreateUserDTO) {
-    if (await this.userModel.findOne({ email: body.email })) {
+    if (await this.userRepository.findOne({ where: { email: body.email } })) {
       throw new BadRequestException('User already exists');
     }
 
-    const createdUser = await this.userModel.create({
-      ...body,
-      passwordHash: await argon2.hash(body.password),
-    });
+    const entity = await this.userRepository.save(
+      {
+        ...body,
+        tag: generateTag(),
+        passwordHash: await argon2.hash(body.password),
+      },
+      { transaction: false },
+    );
 
-    return new UserDTO(createdUser.toJSON()).getPublic();
+    return entity;
+  }
+
+  public async getMe(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    const channels = await this.channelMemberRepository.find({ where: { userId }, select: { channelId: true } });
+    return { ...user, channels: channels.map((channel) => channel.channelId) };
   }
 
   public async findOne(
@@ -31,58 +48,51 @@ export class UserService {
       | {
           [key in keyof Pick<UserDTO, 'email' | 'username'>]?: string;
         }
-      | { _id: Types.ObjectId },
+      | { id: string },
   ) {
-    const user = await this.userModel.findOne(query);
-    return user ? user.toJSON() : null;
+    const entity = await this.userRepository.findOne({ where: query });
+    return entity;
   }
 
-  public async getUsers(ids: Types.ObjectId[]) {
-    return (await this.userModel.find({ _id: ids })).map((user) => new UserDTO(user.toJSON()).getPublic());
+  public async getUsers(ids: string[]) {
+    return await this.userRepository.find({ where: { id: In(ids) } });
   }
 
-  public async changePassword(currentPassword: string, newPassword: string, userId: Types.ObjectId) {
-    const session = await this.connection.startSession();
-    try {
-      session.startTransaction();
+  public async changePassword(currentPassword: string, newPassword: string, userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
 
-      const user = await this.userModel.findById(userId);
-
-      if (!(await argon2.verify(user.passwordHash, currentPassword))) {
-        throw new BadRequestException('Неверный пароль');
-      }
-
-      const newHash = await argon2.hash(newPassword);
-
-      await this.userModel.updateOne({ _id: userId }, { passwordHash: newHash });
-
-      await session.commitTransaction();
-      await session.endSession();
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
+    if (!(await argon2.verify(user.passwordHash, currentPassword))) {
+      throw new BadRequestException('Неверный пароль');
     }
+
+    const newHash = await argon2.hash(newPassword);
+
+    await this.userRepository.update({ id: userId }, { passwordHash: newHash });
   }
 
-  async updateUser(updatingFields: UpdateUserDTO, userId: Types.ObjectId) {
-    const session = await this.connection.startSession();
-    try {
-      session.startTransaction();
+  public async updateUser(data: UpdateUserDTO, userId: string) {
+    const user = await this.dataSource
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set(data)
+      .where('id = :userId', { userId })
+      .returning('*')
+      .updateEntity(true)
+      .execute();
 
-      const user = await this.userModel.findOneAndUpdate({ _id: userId }, updatingFields, {
-        session,
-        new: true,
-      });
+    return user.raw[0];
+  }
 
-      await session.commitTransaction();
-      await session.endSession();
+  public async getChannelsForUser(userId: string) {
+    const channels = await this.channelMemberRepository.find({
+      where: {
+        userId,
+      },
+      relations: {
+        channel: true,
+      },
+    });
 
-      return new UserDTO(user.toJSON()).getMe();
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
-    }
+    return channels.map((channel) => channel.channel);
   }
 }

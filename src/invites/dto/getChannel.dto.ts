@@ -1,8 +1,7 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class GetChannelFromInviteDTO {
   @IsNotEmpty()
-  @IsString()
-  @Length(Number(process.env.INVITE_LINK_LENGTH))
+  @IsUUID('4')
   inviteId: string;
 }

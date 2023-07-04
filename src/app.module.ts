@@ -13,6 +13,8 @@ import { MessagesModule } from './messages/messages.module';
 import { InvitesModule } from './invites/invites.module';
 import { GatewaysModule } from './gateways/gateways.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { PermissionsModule } from './permissions/permissions.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -21,7 +23,18 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       dbName: 'instant',
       retryAttempts: 5,
       retryDelay: 1000,
-      replicaSet: 'rs',
+    }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.TYPEORM_HOST,
+      username: process.env.TYPEORM_USERNAME,
+      password: process.env.TYPEORM_PASSWORD,
+      database: process.env.TYPEORM_DATABASE,
+      port: Number(process.env.TYPEORM_PORT),
+      entities: [__dirname + 'dist/**/db/*.entity{.ts,.js}'],
+      autoLoadEntities: true,
+      logging: true,
+      synchronize: true,
     }),
     MulterModule.register({
       dest: './',
@@ -35,6 +48,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MessagesModule,
     InvitesModule,
     GatewaysModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

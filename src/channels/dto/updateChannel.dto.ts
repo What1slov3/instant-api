@@ -1,8 +1,5 @@
-import { IntersectionType, PartialType } from '@nestjs/mapped-types';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
-import { Types } from 'mongoose';
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
+import { PartialType } from '@nestjs/mapped-types';
+import { IsNotEmpty, IsString, IsUUID, MaxLength } from 'class-validator';
 import IChannel from '../interface/channel.interface';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -15,8 +12,8 @@ class UpdatableFieldsChannel implements Partial<IChannel> {
 
   @ApiProperty({ type: String })
   @IsNotEmpty()
-  @Transform(toMongoObjectId)
-  systemChatId?: Types.ObjectId;
+  @IsUUID('4')
+  systemChatId?: string;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -33,6 +30,6 @@ export class UpdateChannelDTO extends PartialType(UpdatableFieldsChannel) {}
 
 export class UpdateChannelParamDTO {
   @IsNotEmpty()
-  @Transform(toMongoObjectId)
-  channelId: Types.ObjectId;
+  @IsUUID('4')
+  channelId: string;
 }

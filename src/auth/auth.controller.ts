@@ -18,14 +18,14 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(@Req() req: Express.Request, @Res({ passthrough: true }) res) {
-    const tokens = await this.authService.createTokensPair(req.user._id);
+    const tokens = await this.authService.createTokensPair(req.user.id);
     res.cookie('refresh', tokens.refresh, {
       httpOnly: true,
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     });
     return {
       access: tokens.access,
-      user: req.user._id,
+      user: req.user.id,
     };
   }
 
@@ -53,7 +53,7 @@ export class AuthController {
   async refreshTokens(@Req() req, @Res({ passthrough: true }) res: Response) {
     const refresh = await this.authService.matchRefreshToken(req.cookies.refresh);
     if (refresh) {
-      const tokens = await this.authService.createTokensPair(refresh.sub);
+      const tokens = await this.authService.createTokensPair(refresh.subId);
       res.cookie('refresh', tokens.refresh, { httpOnly: true });
       return {
         access: tokens.access,

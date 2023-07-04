@@ -1,75 +1,104 @@
-import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
-import { ForbiddenException } from '@nestjs/common/exceptions';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { ChatDocument, ChatModel } from './chat.model';
-import mongoose, { Model, Types } from 'mongoose';
-import { ChannelDocument, ChannelModel } from '../channels/channel.model';
-import { ChatDTO, CreateChatDTO } from './dto';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { CreateChatDTO } from './dto';
 import { UpdateChatDTO } from './dto/updateChat.dto';
+import { ChatEntity, ChatGroupEntity } from './entities/db';
 import IUser from 'users/interfaces/user.interface';
+import { IChatStat } from './interfaces/chatStat.interface';
+import { ChatStatEntity } from './entities';
 
 @Injectable()
 export class ChatsService {
   constructor(
-    @InjectModel(ChatModel.name) private readonly chatModel: Model<ChatDocument>,
-    @InjectModel(ChannelModel.name) private readonly channelModel: Model<ChannelDocument>,
-    @InjectConnection() private readonly connection: mongoose.Connection,
+    @InjectRepository(ChatEntity) private readonly chatRepository: Repository<ChatEntity>,
+    @InjectRepository(ChatGroupEntity) private readonly chatGroupRepository: Repository<ChatGroupEntity>,
+    @InjectRepository(ChatStatEntity) private readonly chatStatRepository: Repository<ChatStatEntity>,
+    private readonly dataSource: DataSource,
   ) {}
 
-  async createChat(data: CreateChatDTO) {
-    const { owningChannelId: channelOwnerId, name, chatGroupId } = data;
+  async createChat(data: CreateChatDTO, save: boolean = true) {
+    const { name, chatGroupId } = data;
 
-    const session = await this.connection.startSession();
-    try {
-      session.startTransaction();
+    const entity = this.chatRepository.create({ name, chatGroupId });
 
-      const newChatId = new Types.ObjectId();
+    if (save) {
+      await this.dataSource.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(entity);
 
-      const channel = await this.channelModel.findOneAndUpdate(
-        { _id: channelOwnerId, 'chatGroups._id': chatGroupId },
-        { $push: { 'chatGroups.$.chats': newChatId } },
-      );
-
-      if (!channel) {
-        throw new BadRequestException('Not exist chat group');
-      }
-
-      const chat = await this.chatModel.create([{ _id: newChatId, name, owningChannelId: channelOwnerId }], {
-        session,
+        // const chatStat = this.createChatStat(chat.id);
+        // await transactionalEntityManager.save(chatStat);
       });
-
-      await session.commitTransaction();
-      await session.endSession();
-
-      return new ChatDTO(chat[0].toJSON()).get();
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
-    }
-  }
-
-  async getChats(ids: Types.ObjectId[]) {
-    const chats = await this.chatModel.find({ _id: { $in: ids } });
-    return chats.map((chat) => new ChatDTO(chat.toJSON()).get());
-  }
-
-  async getChatsForChannel(channelId: Types.ObjectId) {
-    const chats = await this.chatModel.find({ channelOwner: channelId });
-    return chats.map((chat) => new ChatDTO(chat.toJSON()).get());
-  }
-
-  async updateChat(chatId: Types.ObjectId, data: UpdateChatDTO, user: IUser) {
-    const channel = await this.channelModel.find({ ownerId: user._id });
-
-    if (!channel) {
-      throw new ForbiddenException();
     }
 
-    const chat = await this.chatModel.findOneAndUpdate({ _id: chatId }, data, {
-      new: true,
+    return entity;
+  }
+
+  async createChatGroup(name: string, owningChannelId: string, save: boolean = true) {
+    const entity = this.chatGroupRepository.create({ name, owningChannelId });
+
+    if (save) {
+      await this.dataSource.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(entity);
+      });
+    }
+
+    return entity;
+  }
+
+  async getChats(ids: string[]) {
+    const chats = await this.chatRepository.find({
+      where: {
+        id: In(ids),
+      },
     });
 
-    return new ChatDTO(chat.toJSON()).get();
+    return chats;
+  }
+
+  async getChatsForChannel(channelId: string) {
+    return await this.dataSource
+      .createQueryBuilder()
+      .select(['cg.id', 'cg.name', 'cg.owningChannelId'])
+      .from(ChatGroupEntity, 'cg')
+      .leftJoinAndSelect('cg.chats', 'c', 'c.chatGroupId = cg.id')
+      .where('cg.owningChannelId = :channelId', { channelId })
+      .getMany();
+  }
+
+  async updateChat(chatId: string, data: UpdateChatDTO, transaction?: EntityManager) {
+    const entity = await (transaction ? transaction : this.dataSource)
+      .createQueryBuilder()
+      .update(ChatEntity)
+      .set(data)
+      .where('id = :chatId', { chatId })
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    return entity;
+  }
+
+  async createChatStat(chatId: string, save: boolean = true) {
+    const entity = this.chatStatRepository.create({ chatId });
+
+    if (save) {
+      await this.chatStatRepository.save(entity);
+    }
+
+    return entity;
+  }
+
+  async updateChatStat(chatId: string, data: Partial<IChatStat>, transaction?: EntityManager) {
+    const entity = await (transaction ? transaction : this.dataSource)
+      .createQueryBuilder()
+      .update(ChatEntity)
+      .set(data)
+      .where('id = :chatId', { chatId })
+      .returning('*')
+      .updateEntity(true)
+      .execute();
+
+    return entity;
   }
 }

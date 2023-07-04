@@ -1,14 +1,11 @@
-import { Types } from 'mongoose';
+import { ChannelEntity } from 'channels/entities/db/channel.entity';
+import { ChatGroupEntity } from 'chats/entities/db/chatGroup.entity';
 
 export default interface IChat {
-  _id: Types.ObjectId;
-  owningChannelId: Types.ObjectId;
+  id: string;
+  chatGroupId: string;
+  chatGroup?: ChatGroupEntity;
   name: string;
-  stats: IChatStats;
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface IChatStats {
-  messageCount: number;
 }

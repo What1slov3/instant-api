@@ -1,19 +1,20 @@
-import { RefreshTokenModel, RefreshTokenDocument } from './models/refreshToken.model';
-import { Model, Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserService } from '../users/user.service';
 import * as argon2 from 'argon2';
-import { TRefreshTokenPayload } from './auth.types';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserService } from '../users/user.service';
+import { RefreshTokenPayload } from './auth.types';
+import { RefreshTokenEntity } from './entities/db/refreshToken.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    @InjectModel(RefreshTokenModel.name)
-    private readonly refreshTokenModel: Model<RefreshTokenDocument>,
+    @InjectRepository(RefreshTokenEntity)
+    private readonly refreshTokenRepository: Repository<RefreshTokenEntity>,
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -27,14 +28,14 @@ export class AuthService {
     return null;
   }
 
-  async createTokensPair(userId: string | Types.ObjectId) {
+  async createTokensPair(userId: string) {
     return {
       access: this.createAccessToken(userId),
       refresh: await this.createRefreshToken(userId),
     };
   }
 
-  createAccessToken(userId: string | Types.ObjectId) {
+  createAccessToken(userId: string) {
     return this.jwtService.sign(
       { sub: userId },
       {
@@ -44,13 +45,13 @@ export class AuthService {
     );
   }
 
-  async createRefreshToken(userId: string | Types.ObjectId) {
-    await this.refreshTokenModel.deleteOne({ sub: userId });
+  async createRefreshToken(userId: string) {
+    await this.refreshTokenRepository.delete({ subId: userId });
 
-    const refreshToken = (await this.refreshTokenModel.create({ sub: userId })).toJSON();
+    const refreshToken = await this.refreshTokenRepository.save({ subId: userId }, { transaction: false });
 
     return this.jwtService.sign(
-      { id: refreshToken._id, sub: userId },
+      { id: refreshToken.id, subId: userId },
       {
         secret: process.env.JWT_SECRET_REFRESH,
         expiresIn: process.env.JWT_REFRESH_EXPIRED,
@@ -65,13 +66,16 @@ export class AuthService {
           secret: process.env.JWT_SECRET_REFRESH,
         })
       ) {
-        const decodedToken = this.jwtService.decode(token) as TRefreshTokenPayload;
-        return await this.refreshTokenModel.findOne({
-          _id: new Types.ObjectId(decodedToken.id),
-          sub: decodedToken.sub,
+        const decodedToken = this.jwtService.decode(token) as RefreshTokenPayload;
+        return await this.refreshTokenRepository.findOne({
+          where: {
+            id: decodedToken.id,
+            subId: decodedToken.subId,
+          },
         });
       }
     } catch (e) {
+      console.error(e);
       throw new UnauthorizedException();
     }
   }

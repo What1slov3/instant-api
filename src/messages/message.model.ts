@@ -1,7 +1,7 @@
 import { SchemaFactory } from '@nestjs/mongoose';
 import { Prop, raw, Schema } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import IMessage, { MessageMeta, MessageType } from './interfaces/message.interface';
+import IMessage, { MessageMeta } from './interfaces/message.interface';
 
 export type MessageDocument = MessageModel & Document;
 
@@ -12,21 +12,16 @@ export class MessageModel implements IMessage {
   @Prop(
     raw({
       text: { type: String, default: '', maxlength: 4000, trim: true },
-      attachments: { files: { type: [String], required: false } },
+      attachments: { files: { type: [String], required: false, default: null } },
     }),
   )
   content: { text: string; attachments?: { files: string[] } };
 
-  @Prop(
-    raw({
-      chatId: { required: true, type: Types.ObjectId, ref: 'chats' },
-      channelId: { required: true, type: Types.ObjectId, ref: 'channels' },
-    }),
-  )
-  context: { chatId: Types.ObjectId; channelId: Types.ObjectId };
+  @Prop({ required: true, type: String, index: true })
+  chatId: string;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'users' })
-  senderId: Types.ObjectId;
+  @Prop({ required: true, type: String })
+  senderId: string;
 
   @Prop(
     raw({

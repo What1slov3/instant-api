@@ -1,11 +1,12 @@
 import { Types } from 'mongoose';
 import IChannel from '../interface/channel.interface';
 import { ApiProperty } from '@nestjs/swagger';
-import { ChatGroupEntity } from './chatGroup.entity';
+import { ChatGroupEntity } from 'chats/entities/db/chatGroup.entity';
+
 
 export class ChannelEntity implements IChannel {
   @ApiProperty({ type: String })
-  _id: Types.ObjectId;
+  id: string;
 
   @ApiProperty()
   name: string;
@@ -17,16 +18,16 @@ export class ChannelEntity implements IChannel {
   banner: string;
 
   @ApiProperty({ type: [String] })
-  members: Types.ObjectId[];
+  members: string[];
 
   @ApiProperty({ type: String })
-  ownerId: Types.ObjectId;
+  ownerId: string;
 
   @ApiProperty({ type: [ChatGroupEntity] })
-  chatGroups: { name: string; chats: Types.ObjectId[] }[];
+  chatGroups: ChatGroupEntity[];
 
   @ApiProperty({ type: String })
-  systemChatId: Types.ObjectId;
+  systemChatId: string;
 
   @ApiProperty()
   createdAt: Date;

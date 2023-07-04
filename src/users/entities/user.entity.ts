@@ -4,7 +4,7 @@ import IUser from '../interfaces/user.interface';
 
 export class UserEntity implements IUser {
   @ApiProperty({ type: String })
-  _id: Types.ObjectId;
+  id: string;
 
   @ApiProperty()
   email: string;
@@ -19,7 +19,7 @@ export class UserEntity implements IUser {
   avatar: string;
 
   @ApiProperty()
-  channels: Types.ObjectId[];
+  passwordHash: string;
 
   @ApiProperty()
   createdAt: Date;

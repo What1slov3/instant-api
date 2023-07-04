@@ -1,99 +1,63 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ChatDocument, ChatModel } from './../chats/chat.model';
 import { MessageDocument, MessageModel } from './message.model';
-import { DeleteMessageDTO, MessageDTO, SendMessageDTO, GetHistoryDTO } from './dto';
-import { EVENTS } from '../common/events';
+import { DeleteMessageDTO, SendMessageDTO, GetHistoryDTO } from './dto';
+import { EMITTER_EVENTS } from 'common/emitter.events';
 import type { MessageMeta } from './interfaces/message.interface';
+import { ChatsService } from 'chats/chats.service';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectModel(MessageModel.name) private readonly messageModel: Model<MessageDocument>,
-    @InjectModel(ChatModel.name) private readonly chatModel: Model<ChatDocument>,
-    @InjectConnection() private readonly connection: mongoose.Connection,
-    private eventEmitter: EventEmitter2,
+    private readonly chatsService: ChatsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async sendMessage(messageData: SendMessageDTO, senderId: Types.ObjectId, meta?: MessageMeta) {
-    const { content, context } = messageData;
+  async sendMessage(data: SendMessageDTO, senderId: string, meta?: MessageMeta) {
+    const { content, chatId } = data;
 
-    const session = await this.connection.startSession();
-    try {
-      session.startTransaction();
+    const chat = await this.chatsService.getChats([chatId]);
 
-      const transaction = await Promise.all([
-        this.messageModel.create([{ senderId, content, context, meta }], { session }),
-        this.chatModel.updateOne({ _id: context.chatId }, { $inc: { 'stats.messageCount': 1 } }, { session }),
-      ]);
+    if (chat.length) {
+      console.log(meta)
+      const message = (await this.messageModel.create({ senderId, content, chatId, meta })).toJSON();
 
-      await session.commitTransaction();
-      await session.endSession();
+      this.eventEmitter.emit(EMITTER_EVENTS.USER_MESSAGES.SEND, message);
 
-      const messageDTO = new MessageDTO(transaction[0][0].toJSON()).get();
-      this.eventEmitter.emit(EVENTS.USER_MESSAGES.SEND, messageDTO);
-      return messageDTO;
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
+      return message;
     }
+
+    throw new BadRequestException('Not existing chat');
   }
 
-  async deleteMessage(messageData: DeleteMessageDTO, userId: Types.ObjectId) {
-    const { _id, context } = messageData;
+  async deleteMessage(data: DeleteMessageDTO) {
+    const { _id } = data;
 
-    const deletingMessage = await this.messageModel.findById(messageData._id);
+    const message = (await this.messageModel.findOneAndDelete({ _id }))?.toJSON();
 
-    if (!deletingMessage) {
+    if (!message) {
       throw new BadRequestException('Not existing message');
     }
-    if (deletingMessage.senderId.toString() !== userId.toString()) {
-      throw new BadRequestException('You are not the sender user');
-    }
 
-    const session = await this.connection.startSession();
-    try {
-      session.startTransaction();
+    this.eventEmitter.emit(EMITTER_EVENTS.USER_MESSAGES.DELETE, message);
 
-      const transaction = await Promise.all([
-        this.messageModel.findOneAndDelete({ _id }, { session }),
-        this.chatModel.updateOne({ _id: context.chatId }, { $inc: { 'stats.messageCount': -1 } }, { session }),
-      ]);
-
-      await session.commitTransaction();
-      await session.endSession();
-
-      const messageDTO = new MessageDTO(transaction[0].toJSON()).get();
-      this.eventEmitter.emit(EVENTS.USER_MESSAGES.DELETE, messageDTO);
-      return messageDTO;
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
-    }
+    return message;
   }
 
   async getHistory(getData: GetHistoryDTO) {
     const { chatId, offset, limit } = getData;
 
-    const chat = await this.chatModel.findOne({ _id: chatId });
-
-    if (!chat) {
-      throw new BadRequestException(`No exists chat ${chatId}`);
-    }
-
-    const history = await this.messageModel
-      .find({ 'context.chatId': chatId })
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit);
+    // to avoid possible performance problems, for now we use 2 queries
+    // https://stackoverflow.com/questions/20348093/mongodb-aggregation-how-to-get-total-records-count/49483919#49483919
+    const count = await this.messageModel.find({ chatId }).count();
+    const history = await this.messageModel.find({ chatId }).sort({ createdAt: -1 }).skip(offset).limit(limit);
 
     return {
-      history: history.map((message) => new MessageDTO(message.toJSON()).get()),
-      hasMore: chat.stats.messageCount > offset + limit,
+      history: history,
+      hasMore: count > offset + limit,
       chatId,
     };
   }

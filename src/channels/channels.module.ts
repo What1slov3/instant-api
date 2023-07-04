@@ -1,18 +1,16 @@
-import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChannelsController } from './channels.controller';
 import { ChannelsService } from './channels.service';
-import { ChannelModel, ChannelSchema } from './channel.model';
-import { UserModel, UserSchema } from '../users/user.model';
-import { ChatModel, ChatSchema } from '../chats/chat.model';
+import { PermissionsModule } from 'permissions/permissions.module';
+import { ChannelMemberEntity } from 'channels/entities/db/channelMember.entity';
+import { ChannelEntity } from './entities/db/channel.entity';
+import { ChatsModule } from 'chats/chats.module';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: ChannelModel.name, schema: ChannelSchema }]),
-    MongooseModule.forFeature([{ name: UserModel.name, schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: ChatModel.name, schema: ChatSchema }]),
-  ],
+  imports: [PermissionsModule, TypeOrmModule.forFeature([ChannelEntity, ChannelMemberEntity]), ChatsModule],
   controllers: [ChannelsController],
   providers: [ChannelsService],
+  exports: [ChannelsService]
 })
 export class ChannelsModule {}

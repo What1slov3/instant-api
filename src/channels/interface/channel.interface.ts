@@ -1,14 +1,10 @@
-import { Types } from 'mongoose';
-
 export default interface IChannel {
-  _id: Types.ObjectId;
+  id: string;
   name: string;
   icon: string;
   banner: string;
-  members: Types.ObjectId[];
-  ownerId: Types.ObjectId;
-  chatGroups: { name: string; chats: Types.ObjectId[] }[];
-  systemChatId: Types.ObjectId;
+  ownerId: string;
+  systemChatId: string;
   createdAt: Date;
   updatedAt: Date;
 }

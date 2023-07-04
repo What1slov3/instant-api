@@ -1,124 +1,92 @@
-import mongoose, { Model, Types } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InternalServerErrorException, BadRequestException } from '@nestjs/common/exceptions';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { InviteDTO } from './dto/invite.dto';
-import { InviteModel } from './invites.model';
-import { ChannelModel } from '../channels/channel.model';
-import { ChannelDTO } from '../channels/dto';
-import { UserModel } from '../users/user.model';
 import { MessagesService } from 'messages/messages.service';
 import { channelGreetings } from 'common/greetings';
 import { getRandomFromArray } from 'common/utils/getRandomFromArray';
+import { InjectRepository } from '@nestjs/typeorm';
+import { InviteEntity } from './entities/db/invite.entity';
+import { DataSource, Repository } from 'typeorm';
+import { ChannelsService } from 'channels/channels.service';
 
 @Injectable()
 export class InvitesService {
   constructor(
-    @InjectModel(InviteModel.name) private readonly inviteModel: Model<InviteModel>,
-    @InjectModel(ChannelModel.name) private readonly channelModel: Model<ChannelModel>,
-    @InjectModel(UserModel.name) private readonly userModel: Model<UserModel>,
-    @InjectConnection() private readonly connection: mongoose.Connection,
+    @InjectRepository(InviteEntity) private readonly inviteRepository: Repository<InviteEntity>,
+    private readonly channelsService: ChannelsService,
     private readonly messagesService: MessagesService,
+    private readonly dataSource: DataSource,
   ) {}
 
-  public async getLink(channelId: Types.ObjectId) {
-    const link = await this.inviteModel.findOne({ channelId });
-
-    if (link) {
-      return new InviteDTO(link.toJSON()).get();
-    }
-
-    const createdLink = await this.createLink(channelId);
-
-    if (createdLink) {
-      return new InviteDTO(createdLink.toJSON()).get();
-    }
-
-    throw new InternalServerErrorException();
-  }
-
-  public async recreateLink(channelId: Types.ObjectId) {
-    const createdLink = this.createLink(channelId);
-
-    if (createdLink) {
-      return new InviteDTO(createdLink).get();
-    }
-
-    throw new InternalServerErrorException();
-  }
-
-  public async createLink(channelId: Types.ObjectId) {
-    const session = await this.connection.startSession();
+  public async getLink(channelId: string) {
     try {
-      session.startTransaction();
+      const link = await this.inviteRepository.findOne({
+        where: {
+          channelId,
+        },
+      });
 
-      const createdLink = await this.inviteModel.create([{ channelId }], { session });
+      if (link) {
+        return link;
+      }
 
-      await session.commitTransaction();
-      await session.endSession();
-
-      return createdLink[0];
-    } catch (e) {
-      await session.abortTransaction();
-      await session.endSession();
-      throw new InternalServerErrorException(e);
+      return await this.inviteRepository.save({ channelId });
+    } catch (err) {
+      if (err.code === '23503') {
+        throw new BadRequestException('No channel exists with such ID');
+      }
     }
+  }
+
+  public async recreateLink(channelId: string) {
+    const link = await this.inviteRepository.findOne({ where: { channelId } });
+    if (link) {
+      await this.inviteRepository.remove(link);
+      return await this.inviteRepository.save({ channelId });
+    }
+    throw new InternalServerErrorException();
   }
 
   public async getChannelFromInvite(inviteId: string) {
-    const link = await this.inviteModel.findById(inviteId);
+    const link = await this.dataSource
+      .getRepository(InviteEntity)
+      .createQueryBuilder('invite')
+      .leftJoinAndSelect('invite.channel', 'channel')
+      .where('invite.id = :inviteId', { inviteId })
+      .useTransaction(false)
+      .getOne();
 
-    if (link) {
-      const channel = await this.channelModel.findById(link.channelId);
-      if (channel) {
-        return new ChannelDTO(channel.toJSON()).getFromInvite();
-      }
+    if (link?.channel) {
+      return link.channel;
     }
 
-    return new BadRequestException();
+    throw new BadRequestException('No invite exists for channel');
   }
 
-  public async joinChannelByInvite(inviteId: string, userId: Types.ObjectId) {
-    const link = await this.inviteModel.findById(inviteId);
+  public async checkCanJoin(userId: string, channelId: string) {
+    const member = await this.channelsService.getMember(channelId, userId);
+
+    return !member;
+  }
+
+  public async joinChannelByInvite(inviteId: string, userId: string) {
+    const link = await this.dataSource
+      .getRepository(InviteEntity)
+      .createQueryBuilder('invite')
+      .leftJoinAndSelect('invite.channel', 'channel')
+      .where('invite.id = :inviteId', { inviteId })
+      .useTransaction(false)
+      .getOne();
 
     if (link) {
-      const session = await this.connection.startSession();
-      try {
-        session.startTransaction();
-
-        const transactionResult = await Promise.all([
-          this.channelModel.findOneAndUpdate(
-            { _id: link.channelId },
-            { $addToSet: { members: userId } },
-            { new: true, session },
-          ),
-          this.userModel.findOneAndUpdate(
-            { _id: userId },
-            { $addToSet: { channels: link.channelId } },
-            { new: true, session },
-          ),
-        ]);
-
-        await this.messagesService.sendMessage(
-          {
-            content: { text: getRandomFromArray(channelGreetings) },
-            context: { channelId: link.channelId, chatId: transactionResult[0].toJSON().systemChatId },
-          },
-          link.channelId,
-          { type: 'greetings', data: { userId } },
-        );
-
-        await session.commitTransaction();
-        await session.endSession();
-
-        return new ChannelDTO(transactionResult[0].toJSON()).get();
-      } catch (e) {
-        await session.abortTransaction();
-        await session.endSession();
-        throw new InternalServerErrorException(e);
-      }
+      await this.channelsService.addChannelMember(userId, link.channelId);
+      await this.messagesService.sendMessage(
+        { content: { text: getRandomFromArray(channelGreetings) }, chatId: link.channel.systemChatId },
+        link.channel.id,
+        { type: 'greetings', data: { userId } },
+      );
+      return link.channel;
     }
 
-    return new BadRequestException();
+    throw new BadRequestException();
   }
 }

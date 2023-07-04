@@ -1,20 +1,22 @@
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { OnEvent } from '@nestjs/event-emitter';
-import { EVENTS, SOCKET_EMIT } from '../common/events';
 import { MessageDTO } from '../messages/dto';
+import { EMITTER_EVENTS } from 'common/emitter.events';
+import { SOCKET_EVENTS } from 'common/socket.events';
+import { MessageModel } from 'messages/message.model';
 
 @WebSocketGateway({ transports: ['websocket'] })
 export class MessagesGateway {
   @WebSocketServer() server: Server;
 
-  @OnEvent(EVENTS.USER_MESSAGES.SEND)
-  handleMessageSend(payload: MessageDTO) {
-    this.server.to(payload.context.chatId.toString()).emit(SOCKET_EMIT.USER_MESSAGES.SEND, payload);
+  @OnEvent(EMITTER_EVENTS.USER_MESSAGES.SEND)
+  handleMessageSend(payload: MessageModel) {
+    this.server.to(payload.chatId.toString()).emit(SOCKET_EVENTS.USER_MESSAGES.SEND, new MessageDTO(payload).get());
   }
 
-  @OnEvent(EVENTS.USER_MESSAGES.DELETE)
-  handleMessageDelete(payload: MessageDTO) {
-    this.server.to(payload.context.chatId.toString()).emit(SOCKET_EMIT.USER_MESSAGES.DELETE, payload);
+  @OnEvent(EMITTER_EVENTS.USER_MESSAGES.DELETE)
+  handleMessageDelete(payload: MessageModel) {
+    this.server.to(payload.chatId.toString()).emit(SOCKET_EVENTS.USER_MESSAGES.DELETE, new MessageDTO(payload).get());
   }
 }

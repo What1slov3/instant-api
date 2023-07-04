@@ -1,8 +1,6 @@
-import { Types } from 'mongoose';
-
 export interface IInvite {
-  _id: string;
-  channelId: Types.ObjectId;
+  id: string;
+  channelId: string;
   updatedAt: Date;
   createdAt: Date;
 }

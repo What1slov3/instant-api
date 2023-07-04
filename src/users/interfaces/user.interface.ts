@@ -1,12 +1,10 @@
-import { Types } from 'mongoose';
-
 export default interface IUser {
-  _id: Types.ObjectId;
+  id: string;
   email: string;
   username: string;
   tag: string;
   avatar: string;
-  channels: Types.ObjectId[];
+  passwordHash: string;
   createdAt: Date;
   updatedAt: Date;
 }

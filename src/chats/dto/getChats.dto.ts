@@ -1,12 +1,11 @@
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
-import { queryToArray } from '../../common/transforms/queryToArray';
+import { toMongoObjectIdTransform } from '../../common/transforms/toMongoObjectId.transform';
+import { queryToArrayTransform } from '../../common/transforms/queryToArray.transform';
 import { Transform } from 'class-transformer';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GetChatsDTO {
   @ApiProperty({ type: [String] })
-  @Transform(queryToArray)
-  @Transform(toMongoObjectId)
-  ids: Types.ObjectId[];
+  @Transform(queryToArrayTransform)
+  ids: string[];
 }

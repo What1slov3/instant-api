@@ -1,10 +1,7 @@
-import { IntersectionType, PartialType } from '@nestjs/mapped-types';
-import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { Types } from 'mongoose';
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
-import IChat from 'chats/interfaces/chat.interface';
+import { PartialType } from '@nestjs/mapped-types';
+import { IsNotEmpty, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import IChat from 'chats/interfaces/chat.interface';
 
 class UpdatableFieldsChat implements Partial<IChat> {
   @ApiProperty()
@@ -19,6 +16,6 @@ export class UpdateChatDTO extends PartialType(UpdatableFieldsChat) {}
 
 export class UpdateChatParamDTO {
   @IsNotEmpty()
-  @Transform(toMongoObjectId)
-  chatId: Types.ObjectId;
+  @IsUUID('4')
+  chatId: string;
 }

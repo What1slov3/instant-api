@@ -1,35 +1,34 @@
+import { ChannelEntity } from 'channels/entities/db/channel.entity';
 import { createURLtoFile, constructDTO } from '../../common';
-import { ChannelModel } from '../channel.model';
 import IChannel from '../interface/channel.interface';
 
-export class ChannelDTO extends ChannelModel implements IChannel {
+export class ChannelDTO extends ChannelEntity implements IChannel {
   constructor(data: any) {
     super();
     Object.keys(data).forEach((key) => (this[key] = data[key]));
   }
 
-  get() {
+  get(extraFields?: Record<string, any>) {
     return constructDTO<this, keyof Exclude<IChannel, 'updatedAt'>>(
       this,
-      ['_id', 'name', 'icon', 'members', 'ownerId', 'chatGroups', 'createdAt', 'systemChatId', 'banner'],
+      ['id', 'name', 'icon', 'ownerId', 'createdAt', 'systemChatId', 'banner'],
       {
         mutate: {
           icon: createURLtoFile,
           banner: createURLtoFile,
         },
+        add: extraFields,
       },
     );
   }
 
-  getFromInvite() {
-    return constructDTO<this, keyof Exclude<IChannel, 'updatedAt'>>(this, ['_id', 'name', 'icon', 'banner'], {
-      add: {
-        membersCount: this.members.length,
-      },
+  getFromInvite(extraFields?: Record<string, any>) {
+    return constructDTO<this, keyof Exclude<IChannel, 'updatedAt'>>(this, ['id', 'name', 'icon', 'banner'], {
       mutate: {
         icon: createURLtoFile,
         banner: createURLtoFile,
       },
+      add: extraFields,
     });
   }
 }

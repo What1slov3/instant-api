@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { ChatsService } from './chats.service';
-import { CreateChatDTO, GetChatsDTO, GetChatsForChannelDTO } from './dto';
+import { ChatDTO, CreateChatDTO, GetChatsDTO, GetChatsForChannelDTO } from './dto';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ChatEntity } from './entities/chat.entity';
 import { UpdateChatDTO, UpdateChatParamDTO } from './dto/updateChat.dto';
+import { ChatGroupDTO } from './dto/chatGroup.dto';
 
 @ApiTags('Chats')
 @Controller('chats')
@@ -18,7 +19,8 @@ export class ChatsController {
   @UseGuards(JwtAuthGuard)
   @Post('create')
   async createChat(@Body() body: CreateChatDTO) {
-    return this.chatsService.createChat(body);
+    const res = await this.chatsService.createChat(body);
+    return new ChatDTO(res).get();
   }
 
   @ApiBearerAuth()
@@ -27,7 +29,8 @@ export class ChatsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getChats(@Query() query: GetChatsDTO) {
-    return this.chatsService.getChats(query.ids);
+    const res = await this.chatsService.getChats(query.ids);
+    return res.map((chat) => new ChatDTO(chat).get());
   }
 
   @ApiBearerAuth()
@@ -36,7 +39,11 @@ export class ChatsController {
   @UseGuards(JwtAuthGuard)
   @Get('forChannel')
   async getChatsForChannel(@Query() query: GetChatsForChannelDTO) {
-    return this.chatsService.getChatsForChannel(query.channelId);
+    const res = await this.chatsService.getChatsForChannel(query.channelId);
+    return res.map((chatGroup) => {
+      chatGroup.chats = chatGroup.chats.map((chat) => chat.id);
+      return new ChatGroupDTO(chatGroup).get();
+    });
   }
 
   @ApiOperation({ summary: 'Обновление данных и настроек чата' })
@@ -44,7 +51,8 @@ export class ChatsController {
   @ApiBadRequestResponse()
   @UseGuards(JwtAuthGuard)
   @Patch(':chatId')
-  async updateChat(@Param() param: UpdateChatParamDTO, @Body() body: UpdateChatDTO, @Req() req: Express.Request) {
-    return this.chatsService.updateChat(param.chatId, body, req.user);
+  async updateChat(@Param() param: UpdateChatParamDTO, @Body() body: UpdateChatDTO) {
+    const res = (await this.chatsService.updateChat(param.chatId, body)).raw[0];
+    return new ChatDTO(res).get();
   }
 }

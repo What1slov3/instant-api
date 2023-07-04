@@ -1,4 +1,3 @@
-import { RefreshTokenModel, RefreshTokenSchema } from './models/refreshToken.model';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../users/user.module';
@@ -7,7 +6,8 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshTokenEntity } from './entities/db/refreshToken.entity';
 
 @Module({
   controllers: [AuthController],
@@ -20,7 +20,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         expiresIn: '60m',
       },
     }),
-    MongooseModule.forFeature([{ name: RefreshTokenModel.name, schema: RefreshTokenSchema }]),
+    TypeOrmModule.forFeature([RefreshTokenEntity]),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
 })

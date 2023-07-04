@@ -1,8 +1,8 @@
-export type TAccessTokenPayload = {
-  sub: string;
+export type AccessTokenPayload = {
+  subId: string;
 };
 
-export type TRefreshTokenPayload = {
-  sub: string;
+export type RefreshTokenPayload = {
+  subId: string;
   id: string;
 }

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
-import { DeleteMessageDTO, GetHistoryDTO, SendMessageDTO } from './dto';
+import { DeleteMessageDTO, GetHistoryDTO, MessageDTO, SendMessageDTO } from './dto';
 import { MessagesService } from './messages.service';
 import { MessageEntity } from './entities/messages.entity';
 import { MessageHistoryEntity } from './entities/history.entity';
@@ -18,7 +18,8 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @Post('send')
   async sendMessage(@Body() body: SendMessageDTO, @Req() req: Express.Request) {
-    return this.messagesService.sendMessage(body, req.user._id);
+    const res = await this.messagesService.sendMessage(body, req.user.id);
+    return new MessageDTO(res).get();
   }
 
   @ApiBearerAuth()
@@ -27,8 +28,9 @@ export class MessagesController {
   @ApiBadRequestResponse()
   @UseGuards(JwtAuthGuard)
   @Delete()
-  async deleteMessage(@Body() body: DeleteMessageDTO, @Req() req: Express.Request) {
-    return this.messagesService.deleteMessage(body, req.user._id);
+  async deleteMessage(@Body() body: DeleteMessageDTO) {
+    const res = await this.messagesService.deleteMessage(body);
+    return new MessageDTO(res).get();
   }
 
   @ApiBearerAuth()
@@ -38,6 +40,9 @@ export class MessagesController {
   @UseGuards(JwtAuthGuard)
   @Get('history')
   async getHistory(@Query() query: GetHistoryDTO) {
-    return this.messagesService.getHistory(query);
+    const res = await this.messagesService.getHistory(query);
+    //@ts-ignore
+    res.history = res.history.map((message) => new MessageDTO(message.toJSON()).get());
+    return res;
   }
 }

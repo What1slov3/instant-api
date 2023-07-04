@@ -1,9 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import IUser from './users/interfaces/user.interface';
 import * as cookieParser from 'cookie-parser';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+import IUser from './users/interfaces/user.interface';
 
 export const VERSION = '0.2.0';
 
@@ -30,6 +30,13 @@ declare global {
       INVITE_LINK_LENGTH: string;
       LOCAL_FRONT_URL: string;
       MAX_FILE_UPLOAD: string;
+      TYPEORM_HOST: string;
+      TYPEORM_PASSWORD: string;
+      TYPEORM_USERNAME: string;
+      TYPEORM_DATABASE: string;
+      TYPEORM_PORT: string;
+      BASE_CHAT_NAME: string;
+      BASE_CHAT_GROUP_NAME: string;
     }
   }
 }

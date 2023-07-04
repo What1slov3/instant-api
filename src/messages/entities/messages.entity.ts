@@ -1,8 +1,8 @@
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { MessageContentDTO, MessageContextDTO } from '../dto';
-import type { MessageContext, MessageContent, MessageType, MessageMeta } from '../interfaces/message.interface';
+import { Types } from 'mongoose';
+import type { MessageContent, MessageMeta } from '../interfaces/message.interface';
 import type IMessage from '../interfaces/message.interface';
+import { MessageContentDTO } from 'messages/dto';
 
 export class MessageEntity implements IMessage {
   @ApiProperty({ type: String })
@@ -11,17 +11,17 @@ export class MessageEntity implements IMessage {
   @ApiProperty({ type: MessageContentDTO })
   content: MessageContent;
 
-  @ApiProperty({ type: MessageContextDTO })
-  context: MessageContext;
-
   @ApiProperty({ type: String })
-  senderId: Types.ObjectId;
+  senderId: string;
 
   @ApiProperty()
-  updatedAt: Date;
+  chatId: string;
 
   @ApiProperty()
   meta: MessageMeta;
+
+  @ApiProperty()
+  updatedAt: Date;
 
   @ApiProperty()
   createdAt: Date;

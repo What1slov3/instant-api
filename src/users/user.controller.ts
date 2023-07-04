@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { CreateUserDTO, UpdateUserDTO, UserDTO } from './dto';
 import { GetUsersDTO } from './dto/getUsers.dto';
 import { ChangePasswordDTO } from './dto/changePassword.dto';
-import { UserEntity } from './entities/user.entity';
+import { UserEntity } from './entities/db/user.entity';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -27,6 +27,7 @@ import {
 } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'common';
+import { ChannelDTO } from 'channels/dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -37,7 +38,8 @@ export class UserController {
   @ApiOkResponse({ type: UserEntity })
   @Post('create')
   async createUser(@Body() body: CreateUserDTO) {
-    return this.userService.createUser(body);
+    const res = await this.userService.createUser(body);
+    return new UserDTO(res).getPublic();
   }
 
   @ApiBearerAuth()
@@ -48,11 +50,20 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getUser(@Request() req: Express.Request) {
-    const user = await this.userService.findOne({ _id: req.user._id });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-    return new UserDTO(user).getMe();
+    const user = await this.userService.getMe(req.user.id);
+    return new UserDTO(user).getMe({ channels: user.channels });
+  }
+
+  @ApiBearerAuth()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Получение каналов пользователя' })
+  @ApiOkResponse({ type: [String] })
+  @ApiBadRequestResponse({ type: String })
+  @UseGuards(JwtAuthGuard)
+  @Get('channels')
+  async getChannels(@Request() req: Express.Request) {
+    const res = await this.userService.getChannelsForUser(req.user.id);
+    return res.map((channel) => new ChannelDTO(channel).get());
   }
 
   @ApiBearerAuth()
@@ -62,7 +73,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('users')
   async getUsers(@Query() query: GetUsersDTO) {
-    return this.userService.getUsers(query.ids);
+    const res = await this.userService.getUsers(query.ids);
+    return res.map((user) => new UserDTO(user).getPublic());
   }
 
   @ApiBearerAuth()
@@ -72,7 +84,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Patch('password')
   async changePassword(@Body() body: ChangePasswordDTO, @Request() req: Express.Request) {
-    return this.userService.changePassword(body.currentPassword, body.newPassword, req.user._id);
+    return this.userService.changePassword(body.currentPassword, body.newPassword, req.user.id);
   }
 
   @ApiBearerAuth()
@@ -84,6 +96,7 @@ export class UserController {
   @UseInterceptors(FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }], multerOptions))
   @Patch('update')
   async updateUser(@Body() body: UpdateUserDTO, @UploadedFiles() files, @Request() req: Express.Request) {
-    return this.userService.updateUser({ ...body, avatar: files?.avatar?.[0].filename }, req.user._id);
+    const res = await this.userService.updateUser({ ...body, avatar: files?.avatar?.[0].filename }, req.user.id);
+    return new UserDTO(res).getMe();
   }
 }

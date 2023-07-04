@@ -1,19 +1,14 @@
-import { InviteModel, InviteSchema } from './invites.model';
 import { Module } from '@nestjs/common';
 import { InvitesService } from './invites.service';
 import { InvitesController } from './invites.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ChannelModel, ChannelSchema } from '../channels/channel.model';
-import { UserModel, UserSchema } from '../users/user.model';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { InviteEntity } from './entities/db/invite.entity';
+import { ChannelEntity } from 'channels/entities/db/channel.entity';
+import { ChannelsModule } from 'channels/channels.module';
 import { MessagesModule } from 'messages/messages.module';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: InviteModel.name, schema: InviteSchema }]),
-    MongooseModule.forFeature([{ name: ChannelModel.name, schema: ChannelSchema }]),
-    MongooseModule.forFeature([{ name: UserModel.name, schema: UserSchema }]),
-    MessagesModule
-  ],
+  imports: [TypeOrmModule.forFeature([InviteEntity, ChannelEntity]), ChannelsModule, MessagesModule],
   providers: [InvitesService],
   controllers: [InvitesController],
 })

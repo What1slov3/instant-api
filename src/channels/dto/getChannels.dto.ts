@@ -1,12 +1,16 @@
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
-import { queryToArray } from '../../common/transforms/queryToArray';
+import { queryToArrayTransform } from '../../common/transforms/queryToArray.transform';
 import { Transform } from 'class-transformer';
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID } from 'class-validator';
+import { toBooleanTransform } from 'common/transforms/toBoolean.transform';
 
 export class GetChannelsDTO {
-  @ApiProperty({type: [String]})
-  @Transform(queryToArray)
-  @Transform(toMongoObjectId)
-  ids: Types.ObjectId[];
+  @ApiProperty({ type: [String] })
+  @Transform(queryToArrayTransform)
+  @IsUUID('4', { each: true })
+  ids: string[];
+
+  @Transform(toBooleanTransform)
+  @ApiProperty()
+  withMembers?: boolean;
 }

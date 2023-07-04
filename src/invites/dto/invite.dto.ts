@@ -1,17 +1,17 @@
-import { InviteModel } from './../invites.model';
+import { InviteEntity } from 'invites/entities/db/invite.entity';
 import { constructDTO } from '../../common';
 import { IInvite } from '../interfaces/invites.interface';
 
-export class InviteDTO extends InviteModel implements IInvite {
+export class InviteDTO extends InviteEntity implements IInvite {
   constructor(data: any) {
     super();
     Object.keys(data).forEach((key) => (this[key] = data[key]));
   }
 
   get() {
-    return constructDTO<this, keyof IInvite>(this, ['_id', 'channelId'], {
+    return constructDTO<this, keyof IInvite>(this, ['id', 'channelId'], {
       add: {
-        link: `${process.env.LOCAL_FRONT_URL}/invites/${this._id}`,
+        link: `${process.env.LOCAL_FRONT_URL}/invites/${this.id}`,
       },
     });
   }

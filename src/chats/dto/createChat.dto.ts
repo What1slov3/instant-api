@@ -1,11 +1,11 @@
 import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import { Types } from 'mongoose';
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
+import { toMongoObjectIdTransform } from '../../common/transforms/toMongoObjectId.transform';
 import IChat from '../interfaces/chat.interface';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateChatDTO implements Pick<IChat, 'name' | 'owningChannelId'> {
+export class CreateChatDTO implements Pick<IChat, 'name'> {
   @ApiProperty({ minimum: 32, maximum: 3, description: 'Название чата' })
   @IsNotEmpty()
   @IsString()
@@ -15,11 +15,5 @@ export class CreateChatDTO implements Pick<IChat, 'name' | 'owningChannelId'> {
 
   @ApiProperty({ description: 'ID группы чатов в который необходимо добавить созданный чат' })
   @IsNotEmpty()
-  @Transform(toMongoObjectId)
   chatGroupId: string;
-
-  @ApiProperty({ type: String, description: 'ID канала-владельца чата' })
-  @IsNotEmpty()
-  @Transform(toMongoObjectId)
-  owningChannelId: Types.ObjectId;
 }

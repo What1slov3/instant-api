@@ -3,15 +3,18 @@ export function constructDTO<T, K extends keyof T>(
   keys: K[],
   transforms?: {
     add?: Record<string, any>;
-    mutate?: Partial<Record<K, (field: any) => any>>;
+    mutate?: Partial<Record<K, (field: any) => any> | any>;
+    mutateFieldName?: Partial<Record<K, string>>;
   },
 ): Record<K, any> {
   const result: any = { ...transforms?.add };
   keys.forEach((key) => {
+    const mutatedKey = transforms?.mutateFieldName?.[key] ? transforms.mutateFieldName[key] : key;
     if (transforms?.mutate?.[key]) {
-      return (result[key] = transforms.mutate[key](obj[key]));
+      return (result[mutatedKey] =
+        typeof transforms.mutate[key] === 'function' ? transforms.mutate[key](obj[key]) : transforms.mutate[key]);
     }
-    result[key] = obj[key];
+    result[mutatedKey] = obj[key];
   });
   return result;
 }

@@ -1,19 +1,11 @@
-import { Transform, Type } from 'class-transformer';
-import { IsNotEmpty, ValidateNested } from 'class-validator';
-import { Types } from 'mongoose';
-import { toMongoObjectId } from '../../common/transforms/toMongoObjectId';
-import IMessage, { MessageContext } from '../../messages/interfaces/message.interface';
-import { MessageContextDTO } from './message.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import IMessage from '../../messages/interfaces/message.interface';
+import { toMongoObjectIdTransform } from 'common';
+import type { Types } from 'mongoose';
 
-export class DeleteMessageDTO implements Pick<IMessage, 'context' | '_id'> {
-  @IsNotEmpty()
-  @Transform(toMongoObjectId)
+export class DeleteMessageDTO implements Pick<IMessage, '_id'> {
+  @Transform(toMongoObjectIdTransform)
   @ApiProperty({ type: String })
   _id: Types.ObjectId;
-
-  @ValidateNested({ each: true })
-  @Type(() => MessageContextDTO)
-  @ApiProperty({ type: MessageContextDTO })
-  context: MessageContext;
 }
