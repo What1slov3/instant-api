@@ -5,3 +5,4 @@ export * from './utils/constructDTO';
 export * from './utils/createPathToFile';
 export * from './utils/generateString';
 export * from './utils/generateTag';
+export * from './common.types';

@@ -8,4 +8,4 @@ export const channelGreetings = [
   '{{username}} just spawned',
   '{{username}} решил посетить нас',
   '{{username}}, думал тебя не заметят?',
-];
+] as const;

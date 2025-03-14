@@ -3,7 +3,7 @@ export function constructDTO<T, K extends keyof T>(
   keys: K[],
   transforms?: {
     add?: Record<string, any>;
-    mutate?: Partial<Record<K, (field: any) => any> | any>;
+    mutate?: Partial<Record<K, ((field: K) => any) | any>>;
     mutateFieldName?: Partial<Record<K, string>>;
   },
 ): Record<K, any> {

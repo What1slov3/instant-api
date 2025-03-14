@@ -5,5 +5,8 @@ export const EMITTER_EVENTS = {
   },
   CHANNELS: {
     KICK_USER: 'channels/kickUser'
+  },
+  PERMISSIONS: {
+    CREATE_DEFAULT: 'permission/createDefault'
   }
-};
+} as const;

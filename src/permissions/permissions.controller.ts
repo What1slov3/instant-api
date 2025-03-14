@@ -3,13 +3,14 @@ import { PermissionsService } from './permissions.service';
 import { JwtAuthGuard } from 'auth/guards/jwt.guard';
 import { SetPermissionsDTO } from './dto/setPermission.dto';
 import { PermissionsGuard } from './guards/permissions.guard';
-import { RequiredPermissions } from './decorators/permissions.decorator';
+import { PermissionsContext, RequiredPermissions } from './decorators';
 import { EPermissions } from './permissions';
 
 @Controller('permissions')
 export class PermissionsController {
   constructor(private readonly permissionssService: PermissionsService) {}
 
+  @PermissionsContext('channel')
   @RequiredPermissions(EPermissions['OWNER'])
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Post('set')

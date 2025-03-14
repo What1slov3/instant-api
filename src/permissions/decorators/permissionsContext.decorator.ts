@@ -1,7 +1,7 @@
 import { SetMetadata } from '@nestjs/common';
-import { PermissionsContext as TPermissionsContext } from 'permissions/interfaces/permission.interface';
+import { TPermissionContext } from 'permissions/types/permission.types';
 
-export const PermissionsContext = (context: TPermissionsContext) => {
+export const PermissionsContext = (context: TPermissionContext) => {
   if (context) {
     return SetMetadata('context', context);
   }

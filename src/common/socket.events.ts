@@ -11,4 +11,4 @@ export const SOCKET_EVENTS = {
     JOIN: 'chats/join',
   },
   CONNECT: 'user/connect',
-};
+} as const;

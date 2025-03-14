@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EPermissions } from 'permissions/permissions';
-import { PermissionsContext } from './interfaces/permission.interface';
 import { PermissionsDocument, PermissionsModel } from './permissions.model';
 import { SetPermissionsDTO } from './dto/setPermission.dto';
+import { PermissionsDTO } from './dto/permissions.dto';
+import type { TPermissionContext } from './types';
 
 @Injectable()
 export class PermissionsService {
-  constructor(@InjectModel(PermissionsModel.name) private readonly permissionsModel: Model<PermissionsDocument>) {}
+  constructor(
+    @InjectModel(PermissionsModel.name) private readonly permissionsModel: Model<PermissionsDocument>,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   public async setPermissions(data: SetPermissionsDTO) {
     let { permissions, context, contextId, userId } = data;
@@ -56,7 +61,7 @@ export class PermissionsService {
     }
   }
 
-  public async getPermissions(context: PermissionsContext, contextId: string, userId: string) {
+  public async getPermissions(context: TPermissionContext, contextId: string, userId: string) {
     const query = `${context}.contextId`;
 
     const contextPermissions = await this.permissionsModel.aggregate([
@@ -70,6 +75,8 @@ export class PermissionsService {
         },
       },
     ]);
+
+    // this.setPermissions(new PermissionsDTO({userId, context, contextId }).getSetterData())
 
     return contextPermissions[0];
   }

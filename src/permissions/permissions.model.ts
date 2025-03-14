@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { IAssociatedPermission } from './interfaces/permission.interface';
+import type { IAssociatedPermission } from './interfaces/permission.interface';
+import type { UUID } from 'common';
 
 const permissionsRaw = raw([
   {
@@ -38,13 +39,13 @@ export class PermissionsModel {
     default: [],
     type: permissionsRaw,
   })
-  chat: IAssociatedPermission<string>[];
+  chat: IAssociatedPermission<UUID>[];
 
   @Prop({
     default: [],
     type: permissionsRaw,
   })
-  channel: IAssociatedPermission<string>[];
+  channel: IAssociatedPermission<UUID>[];
 
   createdAt: Date;
   updatedAt: Date;

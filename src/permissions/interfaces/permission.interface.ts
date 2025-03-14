@@ -1,12 +1,25 @@
-import { EPermissions } from 'permissions/permissions';
-import { Types } from 'mongoose';
+import type IUser from 'users/interfaces/user.interface';
+import type { DBTimestamps, UUID } from 'common';
+import type { TPermissionRule, TPermissionContext, TPermissionContextId } from 'permissions/types';
 
-export type Permissions = number; // число формата u32, в котором каждый бит представляет правило доступа
-export type PermissionsContext = 'channel' | 'chat';
-
-export interface IAssociatedPermission<T extends string | Types.ObjectId> {
+export interface IAssociatedPermission<T extends TPermissionContextId> {
   contextId: T;
-  permissions: Permissions;
+  permissionRule: TPermissionRule;
 }
 
-export type PermissionsStrings = keyof typeof EPermissions;
+type MappedContext<T extends TPermissionContextId> = {
+  [key in TPermissionContext]: IAssociatedPermission<T>;
+};
+
+export interface IUserPermission<T extends TPermissionContextId = UUID> extends MappedContext<T>, DBTimestamps {
+  userId: IUser['id'];
+  channel: IAssociatedPermission<T>;
+  chat: IAssociatedPermission<T>;
+}
+
+export interface IPermission {
+  id: string;
+  userId: UUID;
+  contextId: UUID;
+  rule: TPermissionRule;
+}
