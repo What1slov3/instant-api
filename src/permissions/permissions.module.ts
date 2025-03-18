@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { PermissionsController } from './permissions.controller';
 import { PermissionsService } from './permissions.service';
-import { PermissionsModel, PermissionsSchema } from './permissions.model';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ChannelPermissionEntity, ChatPermissionEntity } from './entities/db';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: PermissionsModel.name, schema: PermissionsSchema }]),
+    TypeOrmModule.forFeature([ChatPermissionEntity, ChannelPermissionEntity])
   ],
   controllers: [PermissionsController],
   providers: [PermissionsService],

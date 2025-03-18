@@ -4,7 +4,6 @@ import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { CreateChatDTO } from './dto';
 import { UpdateChatDTO } from './dto/updateChat.dto';
 import { ChatEntity, ChatGroupEntity } from './entities/db';
-import IUser from 'users/interfaces/user.interface';
 import { IChatStat } from './interfaces/chatStat.interface';
 import { ChatStatEntity } from './entities';
 

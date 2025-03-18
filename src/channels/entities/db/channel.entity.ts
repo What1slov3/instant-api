@@ -12,11 +12,12 @@ import {
 import IChannel from 'channels/interface/channel.interface';
 import { UserEntity } from 'users/entities/db/user.entity';
 import { ChatEntity } from 'chats/entities/db/chat.entity';
+import type { UUID } from 'common';
 
 @Entity({ database: process.env.TYPEORM_DATABASE, name: 'channel' })
 export class ChannelEntity implements IChannel {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: UUID;
 
   @Column({ type: 'varchar', length: 32 })
   name: string;

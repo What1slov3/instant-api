@@ -1,5 +1,7 @@
-export default interface IUser {
-  id: string;
+import type { UUID } from "common";
+
+export interface IUser {
+  id: UUID;
   email: string;
   username: string;
   tag: string;

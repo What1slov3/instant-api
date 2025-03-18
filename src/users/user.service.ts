@@ -6,6 +6,7 @@ import { CreateUserDTO, UpdateUserDTO, UserDTO } from './dto';
 import { UserEntity } from './entities/db/user.entity';
 import { generateTag } from 'common';
 import { ChannelMemberEntity } from 'channels/entities/db/channelMember.entity';
+import type { IUser } from './interfaces';
 
 @Injectable()
 export class UserService {
@@ -34,7 +35,7 @@ export class UserService {
     return entity;
   }
 
-  public async getMe(userId: string) {
+  public async getMe(userId: IUser['id']) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new BadRequestException('User not found');
@@ -48,17 +49,17 @@ export class UserService {
       | {
           [key in keyof Pick<UserDTO, 'email' | 'username'>]?: string;
         }
-      | { id: string },
+      | { id: IUser['id'] },
   ) {
     const entity = await this.userRepository.findOne({ where: query });
     return entity;
   }
 
-  public async getUsers(ids: string[]) {
+  public async getUsers(ids: IUser['id'][]) {
     return await this.userRepository.find({ where: { id: In(ids) } });
   }
 
-  public async changePassword(currentPassword: string, newPassword: string, userId: string) {
+  public async changePassword(currentPassword: string, newPassword: string, userId: IUser['id']) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(await argon2.verify(user.passwordHash, currentPassword))) {
@@ -70,7 +71,7 @@ export class UserService {
     await this.userRepository.update({ id: userId }, { passwordHash: newHash });
   }
 
-  public async updateUser(data: UpdateUserDTO, userId: string) {
+  public async updateUser(data: UpdateUserDTO, userId: IUser['id']) {
     const user = await this.dataSource
       .createQueryBuilder()
       .update(UserEntity)
@@ -83,7 +84,7 @@ export class UserService {
     return user.raw[0];
   }
 
-  public async getChannelsForUser(userId: string) {
+  public async getChannelsForUser(userId: IUser['id']) {
     const channels = await this.channelMemberRepository.find({
       where: {
         userId,

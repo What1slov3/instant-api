@@ -1,10 +1,9 @@
-import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import IUser from '../interfaces/user.interface';
+import { IUser } from '../interfaces';
 
 export class UserEntity implements IUser {
   @ApiProperty({ type: String })
-  id: string;
+  id: IUser['id'];
 
   @ApiProperty()
   email: string;

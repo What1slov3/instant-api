@@ -11,7 +11,8 @@ import {
 } from 'typeorm';
 import { UserEntity } from 'users/entities/db/user.entity';
 import { DBTimestamps, UUID } from 'common';
-import { ChannelEntity } from 'channels/entities/db/channel.entity';
+import { ChannelEntity } from 'channels/entities/db';
+import type { IUser } from 'users/interfaces';
 
 @Entity({ database: process.env.TYPEORM_DATABASE, name: 'channelPermission' })
 export class ChannelPermissionEntity implements IPermission, DBTimestamps {
@@ -19,14 +20,20 @@ export class ChannelPermissionEntity implements IPermission, DBTimestamps {
   id: string;
 
   @Index()
+  @Column('uuid')
+  userId: IUser['id'];
+  
   @ManyToOne(() => UserEntity, (user) => user.id, { cascade: ['remove'] })
   @JoinColumn()
-  userId: UUID;
+  user: IUser['id'];
 
   @Index()
+  @Column('uuid')
+  contextId: UUID;
+  
   @ManyToOne(() => ChannelEntity, (channel) => channel.id, { cascade: ['remove'] })
   @JoinColumn()
-  contextId: UUID;
+  context: UUID;
 
   @Column({ type: 'integer', default: 0 })
   rule: number;

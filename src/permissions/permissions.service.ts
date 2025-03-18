@@ -1,83 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EPermissions } from 'permissions/permissions';
-import { PermissionsDocument, PermissionsModel } from './permissions.model';
 import { SetPermissionsDTO } from './dto/setPermission.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
+import { ChannelPermissionEntity, ChatPermissionEntity } from './entities/db';
+import { EPermissionContext } from './permissions.const';
+import type { UUID } from 'common';
 import { PermissionsDTO } from './dto/permissions.dto';
-import type { TPermissionContext } from './types';
+
 
 @Injectable()
 export class PermissionsService {
   constructor(
-    @InjectModel(PermissionsModel.name) private readonly permissionsModel: Model<PermissionsDocument>,
+    @InjectRepository(ChatPermissionEntity) private readonly chatPermissionRepository: Repository<ChatPermissionEntity>,
+    @InjectRepository(ChannelPermissionEntity)
+    private readonly channelPermissionRepository: Repository<ChannelPermissionEntity>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
-
-  public async setPermissions(data: SetPermissionsDTO) {
-    let { permissions, context, contextId, userId } = data;
-
-    permissions = typeof permissions === 'number' ? permissions : EPermissions[permissions];
-
-    const updatedPermission = await this.permissionsModel.findOneAndUpdate(
-      {
-        userId,
-      },
-      [
-        {
-          $set: {
-            [context]: {
-              $cond: [
-                { $in: [contextId, `$${context}.contextId`] },
-                {
-                  $map: {
-                    input: `$${context}`,
-                    in: {
-                      $cond: [
-                        { $eq: [`$$this.contextId`, contextId] },
-                        {
-                          contextId: `$$this.contextId`,
-                          permissions: permissions,
-                        },
-                        '$$this',
-                      ],
-                    },
-                  },
-                },
-                { $concatArrays: [`$${context}`, [{ contextId, permissions }]] },
-              ],
-            },
-          },
-        },
-      ],
-    );
-
-    if (!updatedPermission) {
-      await this.permissionsModel.create({
-        userId,
-        [context]: [{ contextId, permissions }],
-      });
-    }
+  ) {
+    
   }
 
-  public async getPermissions(context: TPermissionContext, contextId: string, userId: string) {
-    const query = `${context}.contextId`;
+  public async setPermissions(data: SetPermissionsDTO): Promise<void> {
+    const repository = data.context === EPermissionContext.CHAT ? this.chatPermissionRepository : this.channelPermissionRepository;
+    const permission = repository.create({ rule: data.rule, userId: data.userId, contextId: data.contextId });
+    repository.save(permission);
+  }
 
-    const contextPermissions = await this.permissionsModel.aggregate([
-      { $unwind: `$${context}` },
-      { $match: { [query]: contextId, userId } },
-      {
-        $project: {
-          _id: 0,
-          userId: 1,
-          [context]: 1,
-        },
-      },
-    ]);
+  public async getPermissions(
+    context: EPermissionContext,
+    contextId: UUID,
+    userId: UUID,
+  ): Promise<ReturnType<PermissionsDTO['get']>> {
+    const repository = context === EPermissionContext.CHAT ? this.chatPermissionRepository : this.channelPermissionRepository;
 
-    // this.setPermissions(new PermissionsDTO({userId, context, contextId }).getSetterData())
+    const result = await repository.findOne({ where: { userId, contextId } });
 
-    return contextPermissions[0];
+    return new PermissionsDTO(result).get();
   }
 }

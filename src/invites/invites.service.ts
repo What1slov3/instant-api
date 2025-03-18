@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { InviteEntity } from './entities/db/invite.entity';
 import { DataSource, Repository } from 'typeorm';
 import { ChannelsService } from 'channels/channels.service';
+import type { IUser } from 'users/interfaces';
 
 @Injectable()
 export class InvitesService {
@@ -62,13 +63,13 @@ export class InvitesService {
     throw new BadRequestException('No invite exists for channel');
   }
 
-  public async checkCanJoin(userId: string, channelId: string) {
+  public async checkCanJoin(userId: IUser['id'], channelId: string) {
     const member = await this.channelsService.getMember(channelId, userId);
 
     return !member;
   }
 
-  public async joinChannelByInvite(inviteId: string, userId: string) {
+  public async joinChannelByInvite(inviteId: string, userId: IUser['id']) {
     const link = await this.dataSource
       .getRepository(InviteEntity)
       .createQueryBuilder('invite')
@@ -79,7 +80,7 @@ export class InvitesService {
 
     if (link) {
       await this.channelsService.addChannelMember(userId, link.channelId);
-      await this.messagesService.sendMessage(
+      await this.messagesService.createMessage(
         { content: { text: getRandomFromArray(channelGreetings) }, chatId: link.channel.systemChatId },
         link.channel.id,
         { type: 'greetings', data: { userId } },

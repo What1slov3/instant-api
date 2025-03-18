@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { IsString, IsNotEmpty, IsEmail, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import IUser from '../interfaces/user.interface';
+import type { IUser } from '../interfaces/user.interface';
 
 class UpdatebleUserFields implements Partial<IUser> {
   @IsNotEmpty()

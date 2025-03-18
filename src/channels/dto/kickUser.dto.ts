@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
+import type { IUser } from 'users/interfaces';
 
 export class KickUserDTO {
   @IsNotEmpty()
@@ -7,5 +8,5 @@ export class KickUserDTO {
 
   @IsNotEmpty()
   @IsUUID('4')
-  userId: string;
+  userId: IUser['id'];
 }

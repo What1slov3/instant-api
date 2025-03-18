@@ -1,7 +1,4 @@
-import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
-import { Types } from 'mongoose';
-import { toMongoObjectIdTransform } from '../../common/transforms/toMongoObjectId.transform';
 import IChat from '../interfaces/chat.interface';
 import { ApiProperty } from '@nestjs/swagger';
 

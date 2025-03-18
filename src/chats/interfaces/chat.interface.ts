@@ -1,4 +1,3 @@
-import { ChannelEntity } from 'channels/entities/db/channel.entity';
 import { ChatGroupEntity } from 'chats/entities/db/chatGroup.entity';
 
 export default interface IChat {

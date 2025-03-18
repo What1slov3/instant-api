@@ -1,8 +1,10 @@
+import type { IUser } from "users/interfaces";
+
 export type AccessTokenPayload = {
-  subId: string;
+  subId: IUser['id'];
 };
 
 export type RefreshTokenPayload = {
-  subId: string;
+  subId: IUser['id'];
   id: string;
 }

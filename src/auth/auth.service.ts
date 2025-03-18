@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { UserService } from '../users/user.service';
 import { RefreshTokenPayload } from './auth.types';
 import { RefreshTokenEntity } from './entities/db/refreshToken.entity';
+import type { IUser } from 'users/interfaces';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
     return null;
   }
 
-  async createTokensPair(userId: string) {
+  async createTokensPair(userId: IUser['id']) {
     return {
       access: this.createAccessToken(userId),
       refresh: await this.createRefreshToken(userId),
@@ -45,7 +46,7 @@ export class AuthService {
     );
   }
 
-  async createRefreshToken(userId: string) {
+  async createRefreshToken(userId: IUser['id']) {
     await this.refreshTokenRepository.delete({ subId: userId });
 
     const refreshToken = await this.refreshTokenRepository.save({ subId: userId }, { transaction: false });

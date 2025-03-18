@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import IUser from './users/interfaces/user.interface';
+import type { IUser } from './users/interfaces/user.interface';
 
 export const VERSION = '0.2.0';
 

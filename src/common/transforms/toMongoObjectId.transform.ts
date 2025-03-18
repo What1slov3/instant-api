@@ -1,7 +1,10 @@
 import { Types } from 'mongoose';
 import { BadRequestException } from '@nestjs/common';
 
-export function toMongoObjectIdTransform({ value, key }): Types.ObjectId | Types.ObjectId[] | Record<any, Types.ObjectId> {
+export function toMongoObjectIdTransform({
+  value,
+  key,
+}): Types.ObjectId | Types.ObjectId[] | Record<any, Types.ObjectId> {
   if (Array.isArray(value)) {
     const arr: Types.ObjectId[] = [];
     for (let i = 0; i < value.length; i++) {
@@ -16,6 +19,7 @@ export function toMongoObjectIdTransform({ value, key }): Types.ObjectId | Types
     }
   }
 
+  // TODO REFACTOR
   if (typeof value === 'object') {
     const result: Record<any, any> = {};
     for (let nestedKey in value) {

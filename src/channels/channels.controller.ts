@@ -151,7 +151,8 @@ export class ChannelsController {
       icon: files?.icon?.[0].filename,
       banner: files?.banner?.[0].filename,
     });
-    return new ChannelDTO(res).get();
+    const members = await this.channelsService.getMembers({ channelId: param.channelId });
+    return new ChannelDTO(res).get({ members });
   }
 
   // @Permissions(EPermissions['ADMIN'])

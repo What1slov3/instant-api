@@ -1,13 +1,20 @@
 import { constructDTO, type UUID } from '../../common';
-import type { IAssociatedPermission, IUserPermission } from 'permissions/interfaces/permission.interface';
-import type { Types } from 'mongoose';
+import type { IUser } from 'users/interfaces';
+import type { EPermissionContext } from 'permissions/permissions.const';
+import type { TPermissionRule } from 'permissions/types';
 
-export class PermissionsDTO implements IUserPermission<UUID | Types.ObjectId> {
-  userId: string;
-  updatedAt: string | Date;
-  createdAt: string | Date;
-  channel: IAssociatedPermission<UUID | Types.ObjectId>;
-  chat: IAssociatedPermission<UUID | Types.ObjectId>;
+export interface IUserPermission {
+  userId: IUser['id'];
+  contextId: UUID;
+  context: EPermissionContext;
+  rule: TPermissionRule;
+}
+
+export class PermissionsDTO implements IUserPermission {
+  userId: IUser['id'];
+  context: EPermissionContext;
+  contextId: UUID;
+  rule: number;
 
   constructor(data: any) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
@@ -15,17 +22,19 @@ export class PermissionsDTO implements IUserPermission<UUID | Types.ObjectId> {
 
   get() {
     return constructDTO<this, keyof Exclude<IUserPermission, 'updatedAt' | 'createdAt'>>(this, [
-      'channel',
-      'chat',
       'userId',
+      'context',
+      'contextId',
+      'rule',
     ]);
   }
 
   createAsContextSetter(data: IUserPermission) {
     return constructDTO<this, keyof Exclude<IUserPermission, 'updatedAt' | 'createdAt'>>(this, [
-      'channel',
-      'chat',
       'userId',
+      'context',
+      'contextId',
+      'rule',
     ]);
   }
 }

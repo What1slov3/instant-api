@@ -1,10 +1,10 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
-import IUser from 'users/interfaces/user.interface';
+import { IUser } from 'users/interfaces';
 
 @Entity({ database: process.env.TYPEORM_DATABASE, name: 'user' })
 export class UserEntity implements IUser {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: IUser['id'];
 
   @Index({ unique: true })
   @Column({ type: 'varchar', unique: true })

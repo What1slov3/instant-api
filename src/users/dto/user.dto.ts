@@ -1,5 +1,5 @@
 import { createURLtoFile, constructDTO } from '../../common';
-import IUser from '../interfaces/user.interface';
+import type { IUser } from '../interfaces/user.interface';
 import { UserEntity } from 'users/entities/db/user.entity';
 
 export class UserDTO extends UserEntity implements IUser {

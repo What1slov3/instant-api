@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { IRefreshToken } from 'auth/interfaces/refreshToken.interface';
 import { UserEntity } from 'users/entities/db/user.entity';
+import type { IUser } from 'users/interfaces';
 
 @Entity({ database: process.env.TYPEORM_DATABASE, name: 'refreshToken' })
 export class RefreshTokenEntity implements IRefreshToken {
@@ -20,7 +21,7 @@ export class RefreshTokenEntity implements IRefreshToken {
   sub: string;
 
   @Column('uuid')
-  subId: string;
+  subId: IUser['id'];
 
   @CreateDateColumn()
   createdAt: Date;

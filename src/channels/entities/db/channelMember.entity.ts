@@ -2,11 +2,12 @@ import { CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryColumn, UpdateDa
 import { IChannelMember } from 'channels/interface/channelMember.interface';
 import { UserEntity } from '../../../users/entities/db/user.entity';
 import { ChannelEntity } from 'channels/entities/db/channel.entity';
+import type { IUser } from 'users/interfaces';
 
 @Entity({ database: process.env.TYPEORM_DATABASE, name: 'channelMember' })
 export class ChannelMemberEntity implements IChannelMember {
   @PrimaryColumn('uuid')
-  userId: string;
+  userId: IUser['id'];
 
   @PrimaryColumn('uuid')
   channelId: string;

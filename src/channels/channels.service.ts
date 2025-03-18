@@ -1,15 +1,15 @@
 import { DataSource, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateChannelDTO, GetChannelMembersDTO, UpdateChannelDTO } from './dto';
 import { KickUserDTO } from './dto/kickUser.dto';
-import { EMITTER_EVENTS } from 'common/emitter.events';
 import { ChannelEntity } from './entities/db/channel.entity';
 import { ChannelMemberEntity } from 'channels/entities/db/channelMember.entity';
 import { ChatsService } from 'chats/chats.service';
 import { PermissionsService } from 'permissions/permissions.service';
 import { EPermissions } from 'permissions/permissions';
+import { EPermissionContext } from 'permissions/permissions.const';
+import type { IUser } from 'users/interfaces';
 
 @Injectable()
 export class ChannelsService {
@@ -19,10 +19,9 @@ export class ChannelsService {
     private readonly chatsService: ChatsService,
     private readonly permissionsService: PermissionsService,
     private readonly dataSource: DataSource,
-    private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async createChannel(userId: string, createChanelDTO: CreateChannelDTO) {
+  async createChannel(userId: IUser['id'], createChanelDTO: CreateChannelDTO) {
     const { name, iconName } = createChanelDTO;
 
     return await this.dataSource.transaction(async (transactionalEntityManager) => {
@@ -56,9 +55,9 @@ export class ChannelsService {
       await transactionalEntityManager.save(member);
 
       await this.permissionsService.setPermissions({
-        context: 'channel',
+        context: EPermissionContext.CHANNEL,
         contextId: channel.id,
-        permissions: EPermissions['OWNER'],
+        rule: EPermissions['OWNER'],
         userId,
       });
 
@@ -102,7 +101,7 @@ export class ChannelsService {
     return members.map((member) => (data.withProfiles ? member.user : member.userId));
   }
 
-  async addChannelMember(userId: string, channelId: string, save: boolean = true) {
+  async addChannelMember(userId: IUser['id'], channelId: string, save: boolean = true) {
     const entity = this.channelMemberEntity.create({ channelId, userId });
     if (save) {
       await this.channelMemberEntity.save(entity);
@@ -111,7 +110,7 @@ export class ChannelsService {
     return entity;
   }
 
-  async getMember(channelId: string, userId: string, withProfile = false) {
+  async getMember(channelId: string, userId: IUser['id'], withProfile = false) {
     const member = await this.channelMemberEntity.findOne({
       where: {
         userId,
